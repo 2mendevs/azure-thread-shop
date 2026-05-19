@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient, useServerFn } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn as useFn } from "@tanstack/react-start";
 import { isAdmin, logoutAdmin, ADMIN_EMAIL, ADMIN_PASSWORD } from "@/lib/admin-auth";
 import { useProducts } from "@/lib/use-products";
