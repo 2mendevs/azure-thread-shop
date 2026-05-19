@@ -62,7 +62,7 @@ function CheckoutPage() {
       .from("orders")
       .insert({
         user_id: user.id,
-        items: items as unknown as object[],
+        items: JSON.parse(JSON.stringify(items)),
         total,
         full_name: address.full_name,
         phone: address.phone,
