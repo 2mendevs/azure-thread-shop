@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { getProduct } from "@/lib/products";
+import { useProduct } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -14,10 +14,19 @@ export const Route = createFileRoute("/products/$id")({
 
 function ProductPage() {
   const { id } = Route.useParams();
-  const product = getProduct(id);
+  const { product, isLoading } = useProduct(id);
   const { add } = useCart();
   const navigate = useNavigate();
   const [size, setSize] = useState<string | null>(null);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <div className="container mx-auto px-4 py-20 text-center text-muted-foreground">Loading…</div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (

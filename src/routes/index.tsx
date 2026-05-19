@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { products } from "@/lib/products";
+import { createFileRoute } from "@tanstack/react-router";
+import { useProducts } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { data: products = [] } = useProducts();
   const men = products.filter((p) => p.category === "Men");
   const women = products.filter((p) => p.category === "Women");
 
