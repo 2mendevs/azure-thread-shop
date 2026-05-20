@@ -3,7 +3,8 @@ import { useProducts } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Truck, ShieldCheck } from "lucide-react";
+import { ArrowRight, Sparkles, Truck, ShieldCheck, Wand2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -13,6 +14,7 @@ function Home() {
   const { data: products = [] } = useProducts();
   const men = products.filter((p) => p.category === "Men");
   const women = products.filter((p) => p.category === "Women");
+  const kids = products.filter((p) => p.category === "Kids");
 
   return (
     <div className="min-h-screen bg-background">
