@@ -3,7 +3,8 @@ import { useProducts } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Truck, ShieldCheck } from "lucide-react";
+import { ArrowRight, Sparkles, Truck, ShieldCheck, Wand2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -13,6 +14,7 @@ function Home() {
   const { data: products = [] } = useProducts();
   const men = products.filter((p) => p.category === "Men");
   const women = products.filter((p) => p.category === "Women");
+  const kids = products.filter((p) => p.category === "Kids");
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,7 +85,7 @@ function Home() {
           </div>
         </div>
 
-        <div id="women" className="scroll-mt-20">
+        <div id="women" className="mb-12 scroll-mt-20">
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest text-gold">For her</p>
@@ -94,6 +96,40 @@ function Home() {
             {women.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
+
+        <div id="kids" className="mb-12 scroll-mt-20">
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-gold">For little ones</p>
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Kids' edit</h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {kids.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </div>
+
+        {/* Customize CTA */}
+        <section className="relative my-4 overflow-hidden rounded-2xl bg-hero p-8 md:p-12">
+          <div className="relative z-10 flex flex-col items-start gap-5 text-primary-foreground md:flex-row md:items-center md:justify-between">
+            <div className="max-w-xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
+                <Wand2 className="h-3.5 w-3.5 text-gold" /> New • Design studio
+              </span>
+              <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">
+                Design your own <span className="text-gold">couture</span>.
+              </h2>
+              <p className="mt-2 text-primary-foreground/85">
+                Upload a photo, add text, symbols, change fabric colour and stitch your one-of-a-kind piece.
+              </p>
+            </div>
+            <Link to="/customize">
+              <Button size="lg" className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90">
+                Start customizing <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </section>
       </section>
 
       <footer className="border-t border-border bg-card">
