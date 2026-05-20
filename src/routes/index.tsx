@@ -1,14 +1,153 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useProducts } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Truck, ShieldCheck, Wand2 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { ArrowRight, Sparkles, Truck, ShieldCheck, Wand2, ChevronLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Home,
 });
+
+type Slide = {
+  kicker: string;
+  title: string;
+  highlight: string;
+  copy: string;
+  cta: { label: string; to: string; hash?: string };
+  images: string[];
+  accent: string;
+};
+
+const SLIDES: Slide[] = [
+  {
+    kicker: "Men's collection",
+    title: "Sharp tailoring,",
+    highlight: "everyday ease.",
+    copy: "Premium menswear cut from breathable fabrics — built to move with you.",
+    cta: { label: "Shop Men", to: "/", hash: "men" },
+    images: [
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=80",
+      "https://images.unsplash.com/photo-1516257984-b1b4d707412e?w=600&q=80",
+    ],
+    accent: "Fall '26 · Men",
+  },
+  {
+    kicker: "Women's edit",
+    title: "Effortless silhouettes,",
+    highlight: "couture finish.",
+    copy: "From slip dresses to power blazers — wardrobe icons reimagined for her.",
+    cta: { label: "Shop Women", to: "/", hash: "women" },
+    images: [
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&q=80",
+      "https://images.unsplash.com/photo-1485518882345-15568b007407?w=600&q=80",
+    ],
+    accent: "Fall '26 · Women",
+  },
+  {
+    kicker: "Kids' wardrobe",
+    title: "Tiny humans,",
+    highlight: "big style.",
+    copy: "Soft, durable and adorably designed — couture for the little ones.",
+    cta: { label: "Shop Kids", to: "/", hash: "kids" },
+    images: [
+      "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=1200&q=80",
+      "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=600&q=80",
+    ],
+    accent: "New · Kids",
+  },
+  {
+    kicker: "Design studio",
+    title: "Design your own",
+    highlight: "couture.",
+    copy: "Upload a photo, add text & symbols, pick a fabric — stitch your one-of-a-kind piece.",
+    cta: { label: "Start customizing", to: "/customize" },
+    images: [
+      "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1200&q=80",
+      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600&q=80",
+    ],
+    accent: "Bespoke · Custom",
+  },
+];
+
+function HeroSlideshow() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((p) => (p + 1) % SLIDES.length), 5000);
+    return () => clearInterval(t);
+  }, []);
+  const s = SLIDES[i];
+  return (
+    <section className="relative overflow-hidden bg-hero">
+      <div className="container mx-auto grid gap-10 px-4 py-20 md:grid-cols-2 md:py-28">
+        <div key={`txt-${i}`} className="flex flex-col justify-center text-primary-foreground animate-in fade-in slide-in-from-left-6 duration-700">
+          <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
+            {s.cta.to === "/customize" ? <Wand2 className="h-3.5 w-3.5 text-gold" /> : <Sparkles className="h-3.5 w-3.5 text-gold" />}
+            {s.accent}
+          </span>
+          <p className="text-xs uppercase tracking-[0.3em] text-gold">{s.kicker}</p>
+          <h1 className="mt-2 font-display text-5xl font-bold leading-tight md:text-6xl">
+            {s.title} <span className="text-gold">{s.highlight}</span>
+          </h1>
+          <p className="mt-5 max-w-md text-base text-primary-foreground/85 md:text-lg">{s.copy}</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link to={s.cta.to} hash={s.cta.hash}>
+              <Button size="lg" className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90">
+                {s.cta.label} <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link to="/customize">
+              <Button size="lg" variant="outline" className="border-white/40 bg-white/10 text-primary-foreground hover:bg-white/20">
+                <Wand2 className="mr-1.5 h-4 w-4" /> Customize
+              </Button>
+            </Link>
+          </div>
+          {/* dots */}
+          <div className="mt-8 flex items-center gap-2">
+            {SLIDES.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setI(idx)}
+                className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-gold" : "w-3 bg-white/40"}`}
+                aria-label={`Slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="hidden md:block">
+          <div key={`img-${i}`} className="relative h-full min-h-[420px] animate-in fade-in zoom-in-95 duration-700">
+            <img
+              src={s.images[0]}
+              alt={s.kicker}
+              className="absolute right-0 top-0 h-[420px] w-[80%] rounded-2xl object-cover shadow-elegant"
+            />
+            <img
+              src={s.images[1]}
+              alt=""
+              className="absolute -bottom-6 left-0 h-44 w-44 rounded-2xl border-4 border-background object-cover shadow-gold"
+            />
+          </div>
+        </div>
+      </div>
+      {/* arrows */}
+      <button
+        onClick={() => setI((p) => (p - 1 + SLIDES.length) % SLIDES.length)}
+        className="absolute left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20 md:grid"
+        aria-label="Previous"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <button
+        onClick={() => setI((p) => (p + 1) % SLIDES.length)}
+        className="absolute right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20 md:grid"
+        aria-label="Next"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+    </section>
+  );
+}
 
 function Home() {
   const { data: products = [] } = useProducts();
@@ -20,48 +159,7 @@ function Home() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-hero">
-        <div className="container mx-auto grid gap-10 px-4 py-20 md:grid-cols-2 md:py-28">
-          <div className="flex flex-col justify-center text-primary-foreground">
-            <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5 text-gold" /> New season • Fall '26 drop
-            </span>
-            <h1 className="font-display text-5xl font-bold leading-tight md:text-6xl">
-              Dress in <span className="text-gold">gold-standard</span> essentials.
-            </h1>
-            <p className="mt-5 max-w-md text-base text-primary-foreground/85 md:text-lg">
-              Premium fabrics, considered cuts, and a curated edit of menswear and womenswear — only at 2mendevs.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#shop">
-                <Button size="lg" className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90">
-                  Shop the edit <ArrowRight className="ml-1.5 h-4 w-4" />
-                </Button>
-              </a>
-              <a href="#women">
-                <Button size="lg" variant="outline" className="border-white/40 bg-white/10 text-primary-foreground hover:bg-white/20">
-                  Women
-                </Button>
-              </a>
-            </div>
-          </div>
-          <div className="hidden md:block">
-            <div className="relative h-full min-h-[420px]">
-              <img
-                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=80"
-                alt="Editorial fashion"
-                className="absolute right-0 top-0 h-[420px] w-[80%] rounded-2xl object-cover shadow-elegant"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1485518882345-15568b007407?w=600&q=80"
-                alt="Detail"
-                className="absolute -bottom-6 left-0 h-44 w-44 rounded-2xl border-4 border-background object-cover shadow-gold"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSlideshow />
 
       {/* Trust strip */}
       <section className="border-b border-border bg-card">
@@ -97,7 +195,7 @@ function Home() {
           </div>
         </div>
 
-        <div id="kids" className="mb-12 scroll-mt-20">
+        <div id="kids" className="scroll-mt-20">
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest text-gold">For little ones</p>
@@ -108,28 +206,6 @@ function Home() {
             {kids.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
-
-        {/* Customize CTA */}
-        <section className="relative my-4 overflow-hidden rounded-2xl bg-hero p-8 md:p-12">
-          <div className="relative z-10 flex flex-col items-start gap-5 text-primary-foreground md:flex-row md:items-center md:justify-between">
-            <div className="max-w-xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
-                <Wand2 className="h-3.5 w-3.5 text-gold" /> New • Design studio
-              </span>
-              <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">
-                Design your own <span className="text-gold">couture</span>.
-              </h2>
-              <p className="mt-2 text-primary-foreground/85">
-                Upload a photo, add text, symbols, change fabric colour and stitch your one-of-a-kind piece.
-              </p>
-            </div>
-            <Link to="/customize">
-              <Button size="lg" className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90">
-                Start customizing <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </section>
       </section>
 
       <footer className="border-t border-border bg-card">
