@@ -3,13 +3,21 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn as useFn } from "@tanstack/react-start";
 import { isAdmin, logoutAdmin, ADMIN_EMAIL, ADMIN_PASSWORD } from "@/lib/admin-auth";
+import { Trash2, Plus, LogOut, Package, ShoppingBag, ShieldCheck, Pencil } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
+
 import {
   adminListOrders,
   adminUpdateOrderStatus,
   adminCreateProduct,
+  adminUpdateProduct,
   adminDeleteProduct,
 } from "@/lib/admin.functions";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import type { Product } from "@/lib/products";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
