@@ -28,7 +28,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Package, ShoppingBag, ShieldCheck } from "lucide-react";
+
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
