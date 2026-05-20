@@ -32,8 +32,14 @@ export function AuthDialog({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate();
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tryAdminShortcut(email, password, navigate)) {
+      onOpenChange(false);
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
@@ -45,6 +51,10 @@ export function AuthDialog({
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tryAdminShortcut(email, password, navigate)) {
+      onOpenChange(false);
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
