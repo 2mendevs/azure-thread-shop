@@ -3,13 +3,21 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn as useFn } from "@tanstack/react-start";
 import { isAdmin, logoutAdmin, ADMIN_EMAIL, ADMIN_PASSWORD } from "@/lib/admin-auth";
+import { Trash2, Plus, LogOut, Package, ShoppingBag, ShieldCheck, Pencil } from "lucide-react";
 import { useProducts } from "@/lib/use-products";
+
 import {
   adminListOrders,
   adminUpdateOrderStatus,
   adminCreateProduct,
+  adminUpdateProduct,
   adminDeleteProduct,
 } from "@/lib/admin.functions";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import type { Product } from "@/lib/products";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +28,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Package, ShoppingBag, ShieldCheck } from "lucide-react";
+
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -239,6 +247,9 @@ function ProductsPanel() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const [editing, setEditing] = useState<Product | null>(null);
+
+
   return (
     <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
       <form
@@ -286,7 +297,13 @@ function ProductsPanel() {
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">{p.brand}</p>
                   <p className="text-sm font-semibold text-foreground line-clamp-1">{p.name}</p>
                   <p className="text-xs text-muted-foreground">{p.category} · ₹{p.price.toLocaleString()}</p>
-                  <div className="mt-auto flex justify-end">
+                  <div className="mt-auto flex justify-end gap-1">
+                    <Button
+                      size="sm" variant="ghost"
+                      onClick={() => setEditing(p)}
+                    >
+                      <Pencil className="mr-1 h-3.5 w-3.5" /> Edit
+                    </Button>
                     <Button
                       size="sm" variant="ghost" className="text-destructive"
                       onClick={() => {
@@ -302,9 +319,106 @@ function ProductsPanel() {
           </div>
         )}
       </div>
+      <EditProductDialog product={editing} onClose={() => setEditing(null)} />
     </div>
   );
 }
+
+function EditProductDialog({ product, onClose }: { product: Product | null; onClose: () => void }) {
+  const qc = useQueryClient();
+  const updateFn = useFn(adminUpdateProduct);
+  const [form, setForm] = useState({
+    name: "", brand: "", price: "", mrp: "", category: "Men",
+    description: "", image: "", sizes: "",
+  });
+  useEffect(() => {
+    if (product) {
+      setForm({
+        name: product.name,
+        brand: product.brand,
+        price: String(product.price),
+        mrp: String(product.mrp),
+        category: product.category,
+        description: product.description,
+        image: product.image,
+        sizes: product.sizes.join(","),
+      });
+    }
+  }, [product]);
+
+  const update = useMutation({
+    mutationFn: () =>
+      updateFn({
+        data: {
+          ...creds(),
+          productId: product!.id,
+          name: form.name,
+          brand: form.brand,
+          price: Number(form.price),
+          mrp: Number(form.mrp),
+          category: form.category,
+          description: form.description,
+          image: form.image,
+          sizes: form.sizes.split(",").map((s) => s.trim()).filter(Boolean),
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Product updated");
+      qc.invalidateQueries({ queryKey: ["products"] });
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={!!product} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display">Edit product</DialogTitle>
+        </DialogHeader>
+        {product && (
+          <div className="space-y-4">
+            {form.image && <img src={form.image} alt="" className="h-32 w-full rounded-lg object-cover" />}
+            <Field label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+            <Field label="Brand" value={form.brand} onChange={(v) => setForm({ ...form, brand: v })} />
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Price (₹)" type="number" value={form.price} onChange={(v) => setForm({ ...form, price: v })} />
+              <Field label="MRP (₹)" type="number" value={form.mrp} onChange={(v) => setForm({ ...form, mrp: v })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Category</Label>
+              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Men">Men</SelectItem>
+                  <SelectItem value="Women">Women</SelectItem>
+                  <SelectItem value="Kids">Kids</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Field label="Image URL" value={form.image} onChange={(v) => setForm({ ...form, image: v })} />
+            <Field label="Sizes (comma-separated)" value={form.sizes} onChange={(v) => setForm({ ...form, sizes: v })} />
+            <div className="space-y-1.5">
+              <Label>Description</Label>
+              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button
+            onClick={() => update.mutate()}
+            disabled={update.isPending}
+            className="bg-gold-gradient text-gold-foreground shadow-gold"
+          >
+            {update.isPending ? "Saving…" : "Save changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 function Field({
   label, value, onChange, type = "text", placeholder,

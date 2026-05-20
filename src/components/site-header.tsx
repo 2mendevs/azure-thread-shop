@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, User as UserIcon, LogOut } from "lucide-react";
-import { useState } from "react";
+import { ShoppingBag, User as UserIcon, LogOut, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { isAdmin as checkAdmin } from "@/lib/admin-auth";
+
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -13,6 +15,13 @@ export function SiteHeader() {
   const { count } = useCart();
   const { user, signOut } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    setAdmin(checkAdmin());
+    const i = setInterval(() => setAdmin(checkAdmin()), 1000);
+    return () => clearInterval(i);
+  }, []);
+
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -35,7 +44,15 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {admin && (
+            <Link to="/admin">
+              <Button size="sm" className="bg-gold-gradient text-gold-foreground shadow-gold">
+                <ShieldCheck className="mr-1.5 h-4 w-4" /> Admin
+              </Button>
+            </Link>
+          )}
           {user ? (
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon"><UserIcon className="h-5 w-5" /></Button>
