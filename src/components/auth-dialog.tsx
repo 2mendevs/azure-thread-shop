@@ -6,6 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
+import { ADMIN_EMAIL, ADMIN_PASSWORD, loginAdmin } from "@/lib/admin-auth";
+
+function tryAdminShortcut(email: string, password: string, navigate: ReturnType<typeof useNavigate>) {
+  if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    loginAdmin(email, password);
+    toast.success("Welcome, admin");
+    navigate({ to: "/admin" });
+    return true;
+  }
+  return false;
+}
 
 export function AuthDialog({
   open,
@@ -20,8 +32,14 @@ export function AuthDialog({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate();
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tryAdminShortcut(email, password, navigate)) {
+      onOpenChange(false);
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
@@ -33,6 +51,10 @@ export function AuthDialog({
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tryAdminShortcut(email, password, navigate)) {
+      onOpenChange(false);
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
