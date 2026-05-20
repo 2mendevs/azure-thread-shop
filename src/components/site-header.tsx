@@ -30,6 +30,8 @@ export function SiteHeader() {
           <Link to="/" className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors">Home</Link>
           <Link to="/" hash="men" className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors">Men</Link>
           <Link to="/" hash="women" className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors">Women</Link>
+          <Link to="/" hash="kids" className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors">Kids</Link>
+          <Link to="/customize" className="text-sm font-semibold text-gold hover:opacity-80 transition-colors">Customize</Link>
         </nav>
 
         <div className="flex items-center gap-2">
