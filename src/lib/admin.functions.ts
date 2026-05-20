@@ -77,6 +77,33 @@ export const adminCreateProduct = createServerFn({ method: "POST" })
     return { id: created.id };
   });
 
+export const adminUpdateProduct = createServerFn({ method: "POST" })
+  .inputValidator((input) =>
+    credsSchema
+      .extend({
+        productId: z.string().uuid(),
+        name: z.string().min(1).max(200),
+        brand: z.string().min(1).max(200),
+        price: z.number().min(0),
+        mrp: z.number().min(0),
+        category: z.string().min(1).max(50),
+        description: z.string().max(2000).default(""),
+        image: z.string().url(),
+        sizes: z.array(z.string().min(1).max(10)).min(1).max(20),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    assertAdmin(data);
+    const { email: _e, password: _p, productId, ...row } = data;
+    const { error } = await supabaseAdmin
+      .from("products")
+      .update(row)
+      .eq("id", productId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
 export const adminDeleteProduct = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     credsSchema.extend({ productId: z.string().uuid() }).parse(input),
@@ -90,3 +117,4 @@ export const adminDeleteProduct = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
