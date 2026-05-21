@@ -61,7 +61,6 @@ export function SiteHeader() {
             </Link>
           )}
           {user ? (
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon"><UserIcon className="h-5 w-5" /></Button>
@@ -70,6 +69,19 @@ export function SiteHeader() {
                 <DropdownMenuLabel className="truncate text-xs text-muted-foreground">{user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : admin ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon"><UserIcon className="h-5 w-5" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="truncate text-xs text-muted-foreground">{ADMIN_EMAIL}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleAdminLogout}>
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
