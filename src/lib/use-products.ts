@@ -8,17 +8,21 @@ async function fetchProducts(): Promise<Product[]> {
     .select("*")
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    name: r.name,
-    brand: r.brand,
-    price: Number(r.price),
-    mrp: Number(r.mrp),
-    category: r.category,
-    description: r.description,
-    image: r.image,
-    sizes: r.sizes ?? [],
-  }));
+  return (data ?? []).map((r: any) => {
+    const imgs: string[] = Array.isArray(r.images) && r.images.length ? r.images : [r.image];
+    return {
+      id: r.id,
+      name: r.name,
+      brand: r.brand,
+      price: Number(r.price),
+      mrp: Number(r.mrp),
+      category: r.category,
+      description: r.description,
+      image: r.image,
+      images: imgs,
+      sizes: r.sizes ?? [],
+    };
+  });
 }
 
 export function useProducts() {

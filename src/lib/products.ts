@@ -7,5 +7,6 @@ export type Product = {
   category: string;
   description: string;
   image: string;
+  images: string[];
   sizes: string[];
 };
