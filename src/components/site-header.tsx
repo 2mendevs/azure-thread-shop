@@ -1,7 +1,8 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ShoppingBag, User as UserIcon, LogOut, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { isAdmin as checkAdmin } from "@/lib/admin-auth";
+import { isAdmin as checkAdmin, logoutAdmin, ADMIN_EMAIL } from "@/lib/admin-auth";
+import { toast } from "sonner";
 
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
@@ -16,11 +17,19 @@ export function SiteHeader() {
   const { user, signOut } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     setAdmin(checkAdmin());
     const i = setInterval(() => setAdmin(checkAdmin()), 1000);
     return () => clearInterval(i);
   }, []);
+
+  const handleAdminLogout = () => {
+    logoutAdmin();
+    setAdmin(false);
+    toast.success("Admin signed out");
+    navigate({ to: "/" });
+  };
 
 
   return (
@@ -52,7 +61,6 @@ export function SiteHeader() {
             </Link>
           )}
           {user ? (
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon"><UserIcon className="h-5 w-5" /></Button>
@@ -61,6 +69,19 @@ export function SiteHeader() {
                 <DropdownMenuLabel className="truncate text-xs text-muted-foreground">{user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : admin ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon"><UserIcon className="h-5 w-5" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="truncate text-xs text-muted-foreground">{ADMIN_EMAIL}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleAdminLogout}>
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>

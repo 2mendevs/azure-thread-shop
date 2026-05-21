@@ -73,13 +73,27 @@ const SLIDES: Slide[] = [
 
 function HeroSlideshow() {
   const [i, setI] = useState(0);
+  const touchStart = useState<{ x: number } | null>(null);
   useEffect(() => {
     const t = setInterval(() => setI((p) => (p + 1) % SLIDES.length), 5000);
     return () => clearInterval(t);
   }, []);
+  const next = () => setI((p) => (p + 1) % SLIDES.length);
+  const prev = () => setI((p) => (p - 1 + SLIDES.length) % SLIDES.length);
+  let startX = 0;
+  const onTouchStart = (e: React.TouchEvent) => { startX = e.touches[0].clientX; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) (dx < 0 ? next : prev)();
+  };
+  void touchStart;
   const s = SLIDES[i];
   return (
-    <section className="relative overflow-hidden bg-hero">
+    <section
+      className="relative overflow-hidden bg-hero touch-pan-y"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       <div className="container mx-auto grid gap-10 px-4 py-20 md:grid-cols-2 md:py-28">
         <div key={`txt-${i}`} className="flex flex-col justify-center text-primary-foreground animate-in fade-in slide-in-from-left-6 duration-700">
           <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
@@ -132,15 +146,15 @@ function HeroSlideshow() {
       </div>
       {/* arrows */}
       <button
-        onClick={() => setI((p) => (p - 1 + SLIDES.length) % SLIDES.length)}
-        className="absolute left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20 md:grid"
+        onClick={prev}
+        className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20"
         aria-label="Previous"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
       <button
-        onClick={() => setI((p) => (p + 1) % SLIDES.length)}
-        className="absolute right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20 md:grid"
+        onClick={next}
+        className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20"
         aria-label="Next"
       >
         <ChevronRight className="h-5 w-5" />

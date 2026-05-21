@@ -6,6 +6,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       className="toaster group"
+      duration={5000}
+      swipeDirections={["left", "right", "top", "bottom"]}
       toastOptions={{
         classNames: {
           toast:
