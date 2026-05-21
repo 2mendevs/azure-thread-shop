@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useProduct } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
-import { useEffect, useRef, useState } from "react";
+import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { ChevronLeft, ShoppingBag, ShieldCheck, Truck } from "lucide-react";
@@ -23,6 +23,7 @@ function ProductPage() {
   const startX = useRef(0);
   const lastDx = useRef(0);
   const dragging = useRef(false);
+  const suppressClick = useRef(false);
   const dragFrame = useRef<number | null>(null);
 
   useEffect(() => {
@@ -63,28 +64,36 @@ function ProductPage() {
     setActiveImg((p) => (p + direction + galleryImages.length) % galleryImages.length);
   };
 
-  const onGalleryDown = (clientX: number) => {
+  const onGalleryPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
     dragging.current = true;
-    startX.current = clientX;
+    startX.current = event.clientX;
     lastDx.current = 0;
   };
-  const onGalleryMove = (clientX: number) => {
+  const onGalleryPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return;
-    const nextDx = clientX - startX.current;
+    const nextDx = event.clientX - startX.current;
     lastDx.current = nextDx;
+    if (Math.abs(nextDx) > 8) event.preventDefault();
     if (dragFrame.current) return;
     dragFrame.current = window.requestAnimationFrame(() => {
       setDragDx(lastDx.current);
       dragFrame.current = null;
     });
   };
-  const onGalleryUp = () => {
+  const onGalleryPointerUp = (event: PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return;
+    event.currentTarget.releasePointerCapture(event.pointerId);
     const dx = lastDx.current;
     dragging.current = false;
     lastDx.current = 0;
     setDragDx(0);
-    if (galleryImages.length > 1 && Math.abs(dx) > 45) changeImage(dx < 0 ? 1 : -1);
+    if (galleryImages.length > 1 && Math.abs(dx) > 45) {
+      suppressClick.current = true;
+      changeImage(dx < 0 ? 1 : -1);
+      window.setTimeout(() => { suppressClick.current = false; }, 0);
+    }
   };
 
   const handleAdd = (goToCart = false) => {
@@ -109,16 +118,15 @@ function ProductPage() {
         <div className="space-y-3">
           <div
             className="aspect-[3/4] cursor-grab overflow-hidden rounded-xl border border-border bg-muted select-none touch-pan-y active:cursor-grabbing"
-            onMouseDown={(e) => onGalleryDown(e.clientX)}
-            onMouseMove={(e) => onGalleryMove(e.clientX)}
-            onMouseUp={onGalleryUp}
-            onMouseLeave={onGalleryUp}
-            onTouchStart={(e) => onGalleryDown(e.touches[0].clientX)}
-            onTouchMove={(e) => {
-              onGalleryMove(e.touches[0].clientX);
-              if (Math.abs(lastDx.current) > 8) e.preventDefault();
+            onClickCapture={(e) => {
+              if (!suppressClick.current) return;
+              e.preventDefault();
+              e.stopPropagation();
             }}
-            onTouchEnd={onGalleryUp}
+            onPointerDown={onGalleryPointerDown}
+            onPointerMove={onGalleryPointerMove}
+            onPointerUp={onGalleryPointerUp}
+            onPointerCancel={onGalleryPointerUp}
           >
             <img
               src={galleryImages[activeImg] ?? product.image}
