@@ -23,10 +23,17 @@ function ProductPage() {
   const startX = useRef(0);
   const lastDx = useRef(0);
   const dragging = useRef(false);
+  const dragFrame = useRef<number | null>(null);
 
   useEffect(() => {
     setActiveImg(0);
   }, [id]);
+
+  useEffect(() => {
+    return () => {
+      if (dragFrame.current) window.cancelAnimationFrame(dragFrame.current);
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -65,7 +72,11 @@ function ProductPage() {
     if (!dragging.current) return;
     const nextDx = clientX - startX.current;
     lastDx.current = nextDx;
-    setDragDx(nextDx);
+    if (dragFrame.current) return;
+    dragFrame.current = window.requestAnimationFrame(() => {
+      setDragDx(lastDx.current);
+      dragFrame.current = null;
+    });
   };
   const onGalleryUp = () => {
     if (!dragging.current) return;
@@ -112,6 +123,7 @@ function ProductPage() {
             <img
               src={galleryImages[activeImg] ?? product.image}
               alt={product.name}
+              decoding="async"
               draggable={false}
               className="h-full w-full object-cover transition-transform duration-300"
               style={{ transform: `translateX(${dragDx * 0.2}px)`, transition: dragging.current ? "none" : undefined }}
