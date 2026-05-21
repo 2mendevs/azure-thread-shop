@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useProducts } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCard } from "@/components/product-card";
@@ -75,8 +75,12 @@ function HeroSlideshow() {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const [dragDx, setDragDx] = useState(0);
-  const startX = (typeof window !== "undefined" ? { current: 0 } : { current: 0 });
-  const dragging = { current: false } as { current: boolean };
+  const startX = useRef(0);
+  const lastDx = useRef(0);
+  const dragging = useRef(false);
+  const suppressClick = useRef(false);
+  const resumeTimer = useRef<number | null>(null);
+  const dragFrame = useRef<number | null>(null);
 
   useEffect(() => {
     if (paused) return;
@@ -84,65 +88,112 @@ function HeroSlideshow() {
     return () => clearInterval(t);
   }, [paused]);
 
+  useEffect(() => {
+    return () => {
+      if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+      if (dragFrame.current) window.cancelAnimationFrame(dragFrame.current);
+    };
+  }, []);
+
   const next = () => setI((p) => (p + 1) % SLIDES.length);
   const prev = () => setI((p) => (p - 1 + SLIDES.length) % SLIDES.length);
 
-  const onDown = (clientX: number) => {
+  const onPointerDown = (event: PointerEvent<HTMLElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
     dragging.current = true;
-    startX.current = clientX;
+    startX.current = event.clientX;
+    lastDx.current = 0;
     setPaused(true);
   };
-  const onMove = (clientX: number) => {
+  const onPointerMove = (event: PointerEvent<HTMLElement>) => {
     if (!dragging.current) return;
-    setDragDx(clientX - startX.current);
+    const nextDx = event.clientX - startX.current;
+    lastDx.current = nextDx;
+    if (Math.abs(nextDx) > 8) event.preventDefault();
+    if (dragFrame.current) return;
+    dragFrame.current = window.requestAnimationFrame(() => {
+      setDragDx(lastDx.current);
+      dragFrame.current = null;
+    });
   };
-  const onUp = () => {
+  const onPointerUp = (event: PointerEvent<HTMLElement>) => {
     if (!dragging.current) return;
-    const dx = dragDx;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    const dx = lastDx.current;
     dragging.current = false;
+    lastDx.current = 0;
     setDragDx(0);
-    if (Math.abs(dx) > 60) (dx < 0 ? next : prev)();
-    setTimeout(() => setPaused(false), 800);
+    if (Math.abs(dx) > 60) {
+      suppressClick.current = true;
+      (dx < 0 ? next : prev)();
+      window.setTimeout(() => {
+        suppressClick.current = false;
+      }, 0);
+    }
+    resumeTimer.current = window.setTimeout(() => setPaused(false), 800);
   };
 
   return (
     <section
       className="relative overflow-hidden bg-hero select-none touch-pan-y"
-      onMouseDown={(e) => onDown(e.clientX)}
-      onMouseMove={(e) => onMove(e.clientX)}
-      onMouseUp={onUp}
-      onMouseLeave={onUp}
-      onTouchStart={(e) => onDown(e.touches[0].clientX)}
-      onTouchMove={(e) => onMove(e.touches[0].clientX)}
-      onTouchEnd={onUp}
+      onClickCapture={(e) => {
+        if (!suppressClick.current) return;
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
       style={{ cursor: dragging.current ? "grabbing" : "grab" }}
     >
       <div
         className="container mx-auto grid h-[560px] gap-10 px-4 md:grid-cols-2 md:h-[600px]"
-        style={{ transform: `translateX(${dragDx * 0.25}px)`, transition: dragging.current ? "none" : "transform 300ms ease" }}
+        style={{
+          transform: `translateX(${dragDx * 0.25}px)`,
+          transition: dragging.current ? "none" : "transform 300ms ease",
+        }}
       >
         {(() => {
           const s = SLIDES[i];
           return (
             <>
-              <div key={`txt-${i}`} className="flex flex-col justify-center text-primary-foreground animate-in fade-in slide-in-from-left-6 duration-700">
+              <div
+                key={`txt-${i}`}
+                className="flex flex-col justify-center text-primary-foreground animate-in fade-in slide-in-from-left-6 duration-700"
+              >
                 <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
-                  {s.cta.to === "/customize" ? <Wand2 className="h-3.5 w-3.5 text-gold" /> : <Sparkles className="h-3.5 w-3.5 text-gold" />}
+                  {s.cta.to === "/customize" ? (
+                    <Wand2 className="h-3.5 w-3.5 text-gold" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5 text-gold" />
+                  )}
                   {s.accent}
                 </span>
                 <p className="text-xs uppercase tracking-[0.3em] text-gold">{s.kicker}</p>
                 <h1 className="mt-2 font-display text-5xl font-bold leading-tight md:text-6xl">
                   {s.title} <span className="text-gold">{s.highlight}</span>
                 </h1>
-                <p className="mt-5 line-clamp-3 max-w-md text-base text-primary-foreground/85 md:text-lg">{s.copy}</p>
+                <p className="mt-5 line-clamp-3 max-w-md text-base text-primary-foreground/85 md:text-lg">
+                  {s.copy}
+                </p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <Link to={s.cta.to} hash={s.cta.hash}>
-                    <Button size="lg" className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90">
+                    <Button
+                      size="lg"
+                      className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90"
+                    >
                       {s.cta.label} <ArrowRight className="ml-1.5 h-4 w-4" />
                     </Button>
                   </Link>
                   <Link to="/customize">
-                    <Button size="lg" variant="outline" className="border-white/40 bg-white/10 text-primary-foreground hover:bg-white/20">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-white/40 bg-white/10 text-primary-foreground hover:bg-white/20"
+                    >
                       <Wand2 className="mr-1.5 h-4 w-4" /> Customize
                     </Button>
                   </Link>
@@ -159,16 +210,23 @@ function HeroSlideshow() {
                 </div>
               </div>
               <div className="hidden md:block">
-                <div key={`img-${i}`} className="relative h-full animate-in fade-in zoom-in-95 duration-700">
+                <div
+                  key={`img-${i}`}
+                  className="relative h-full animate-in fade-in zoom-in-95 duration-700"
+                >
                   <img
                     src={s.images[0]}
                     alt={s.kicker}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    decoding="async"
                     draggable={false}
                     className="absolute right-0 top-4 h-[440px] w-[80%] rounded-2xl object-cover shadow-elegant"
                   />
                   <img
                     src={s.images[1]}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     draggable={false}
                     className="absolute bottom-6 left-0 h-44 w-44 rounded-2xl border-4 border-background object-cover shadow-gold"
                   />
@@ -184,9 +242,14 @@ function HeroSlideshow() {
 
 function Home() {
   const { data: products = [] } = useProducts();
-  const men = products.filter((p) => p.category === "Men");
-  const women = products.filter((p) => p.category === "Women");
-  const kids = products.filter((p) => p.category === "Kids");
+  const { men, women, kids } = useMemo(
+    () => ({
+      men: products.filter((p) => p.category === "Men"),
+      women: products.filter((p) => p.category === "Women"),
+      kids: products.filter((p) => p.category === "Kids"),
+    }),
+    [products],
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -197,9 +260,15 @@ function Home() {
       {/* Trust strip */}
       <section className="border-b border-border bg-card">
         <div className="container mx-auto grid grid-cols-1 gap-6 px-4 py-6 text-sm md:grid-cols-3">
-          <div className="flex items-center gap-3 text-foreground/80"><Truck className="h-5 w-5 text-gold" /> Free shipping over ₹1,499</div>
-          <div className="flex items-center gap-3 text-foreground/80"><ShieldCheck className="h-5 w-5 text-gold" /> 30-day easy returns</div>
-          <div className="flex items-center gap-3 text-foreground/80"><Sparkles className="h-5 w-5 text-gold" /> Premium fabrics, ethically sourced</div>
+          <div className="flex items-center gap-3 text-foreground/80">
+            <Truck className="h-5 w-5 text-gold" /> Free shipping over ₹1,499
+          </div>
+          <div className="flex items-center gap-3 text-foreground/80">
+            <ShieldCheck className="h-5 w-5 text-gold" /> 30-day easy returns
+          </div>
+          <div className="flex items-center gap-3 text-foreground/80">
+            <Sparkles className="h-5 w-5 text-gold" /> Premium fabrics, ethically sourced
+          </div>
         </div>
       </section>
 
@@ -208,11 +277,15 @@ function Home() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest text-gold">For him</p>
-              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Men's edit</h2>
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                Men's edit
+              </h2>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {men.map((p) => <ProductCard key={p.id} product={p} />)}
+            {men.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </div>
 
@@ -220,11 +293,15 @@ function Home() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest text-gold">For her</p>
-              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Women's edit</h2>
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                Women's edit
+              </h2>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {women.map((p) => <ProductCard key={p.id} product={p} />)}
+            {women.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </div>
 
@@ -232,18 +309,24 @@ function Home() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest text-gold">For little ones</p>
-              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Kids' edit</h2>
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                Kids' edit
+              </h2>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {kids.map((p) => <ProductCard key={p.id} product={p} />)}
+            {kids.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </div>
       </section>
 
       <footer className="border-t border-border bg-card">
         <div className="container mx-auto flex flex-col items-center justify-between gap-3 px-4 py-8 text-sm text-muted-foreground md:flex-row">
-          <p>© 2026 <span className="text-gold font-semibold">2mendevs</span>. Crafted with care.</p>
+          <p>
+            © 2026 <span className="text-gold font-semibold">2mendevs</span>. Crafted with care.
+          </p>
           <p>support@2mendevs.com</p>
         </div>
       </footer>

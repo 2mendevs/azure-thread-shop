@@ -14,6 +14,7 @@ export function isAdmin(): boolean {
 export function loginAdmin(email: string, password: string): boolean {
   if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
     localStorage.setItem(KEY, "1");
+    window.dispatchEvent(new Event("admin-auth-change"));
     return true;
   }
   return false;
@@ -21,4 +22,5 @@ export function loginAdmin(email: string, password: string): boolean {
 
 export function logoutAdmin() {
   localStorage.removeItem(KEY);
+  window.dispatchEvent(new Event("admin-auth-change"));
 }
