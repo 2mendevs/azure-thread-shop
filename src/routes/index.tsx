@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useProducts } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCard } from "@/components/product-card";
@@ -78,6 +78,7 @@ function HeroSlideshow() {
   const startX = useRef(0);
   const lastDx = useRef(0);
   const dragging = useRef(false);
+  const suppressClick = useRef(false);
   const resumeTimer = useRef<number | null>(null);
   const dragFrame = useRef<number | null>(null);
 
@@ -97,46 +98,53 @@ function HeroSlideshow() {
   const next = () => setI((p) => (p + 1) % SLIDES.length);
   const prev = () => setI((p) => (p - 1 + SLIDES.length) % SLIDES.length);
 
-  const onDown = (clientX: number) => {
+  const onPointerDown = (event: PointerEvent<HTMLElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
     if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
     dragging.current = true;
-    startX.current = clientX;
+    startX.current = event.clientX;
     lastDx.current = 0;
     setPaused(true);
   };
-  const onMove = (clientX: number) => {
+  const onPointerMove = (event: PointerEvent<HTMLElement>) => {
     if (!dragging.current) return;
-    const nextDx = clientX - startX.current;
+    const nextDx = event.clientX - startX.current;
     lastDx.current = nextDx;
+    if (Math.abs(nextDx) > 8) event.preventDefault();
     if (dragFrame.current) return;
     dragFrame.current = window.requestAnimationFrame(() => {
       setDragDx(lastDx.current);
       dragFrame.current = null;
     });
   };
-  const onUp = () => {
+  const onPointerUp = (event: PointerEvent<HTMLElement>) => {
     if (!dragging.current) return;
+    event.currentTarget.releasePointerCapture(event.pointerId);
     const dx = lastDx.current;
     dragging.current = false;
     lastDx.current = 0;
     setDragDx(0);
-    if (Math.abs(dx) > 60) (dx < 0 ? next : prev)();
+    if (Math.abs(dx) > 60) {
+      suppressClick.current = true;
+      (dx < 0 ? next : prev)();
+      window.setTimeout(() => { suppressClick.current = false; }, 0);
+    }
     resumeTimer.current = window.setTimeout(() => setPaused(false), 800);
   };
 
   return (
     <section
       className="relative overflow-hidden bg-hero select-none touch-pan-y"
-      onMouseDown={(e) => onDown(e.clientX)}
-      onMouseMove={(e) => onMove(e.clientX)}
-      onMouseUp={onUp}
-      onMouseLeave={onUp}
-      onTouchStart={(e) => onDown(e.touches[0].clientX)}
-      onTouchMove={(e) => {
-        onMove(e.touches[0].clientX);
-        if (Math.abs(lastDx.current) > 8) e.preventDefault();
+      onClickCapture={(e) => {
+        if (!suppressClick.current) return;
+        e.preventDefault();
+        e.stopPropagation();
       }}
-      onTouchEnd={onUp}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
       style={{ cursor: dragging.current ? "grabbing" : "grab" }}
     >
       <div
