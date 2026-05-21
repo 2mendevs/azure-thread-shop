@@ -26,7 +26,13 @@ async function fetchProducts(): Promise<Product[]> {
 }
 
 export function useProducts() {
-  return useQuery({ queryKey: ["products"], queryFn: fetchProducts });
+  return useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useProduct(id: string) {
