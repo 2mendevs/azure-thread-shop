@@ -152,6 +152,7 @@ function CustomizePage() {
         category: "Custom",
         description: "Your bespoke design",
         image: preview,
+        images: [preview],
         sizes: [size],
       },
       size,
