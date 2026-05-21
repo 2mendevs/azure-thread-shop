@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useProducts } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCard } from "@/components/product-card";
@@ -75,8 +75,10 @@ function HeroSlideshow() {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const [dragDx, setDragDx] = useState(0);
-  const startX = (typeof window !== "undefined" ? { current: 0 } : { current: 0 });
-  const dragging = { current: false } as { current: boolean };
+  const startX = useRef(0);
+  const lastDx = useRef(0);
+  const dragging = useRef(false);
+  const resumeTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (paused) return;
@@ -84,25 +86,36 @@ function HeroSlideshow() {
     return () => clearInterval(t);
   }, [paused]);
 
+  useEffect(() => {
+    return () => {
+      if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+    };
+  }, []);
+
   const next = () => setI((p) => (p + 1) % SLIDES.length);
   const prev = () => setI((p) => (p - 1 + SLIDES.length) % SLIDES.length);
 
   const onDown = (clientX: number) => {
+    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
     dragging.current = true;
     startX.current = clientX;
+    lastDx.current = 0;
     setPaused(true);
   };
   const onMove = (clientX: number) => {
     if (!dragging.current) return;
-    setDragDx(clientX - startX.current);
+    const nextDx = clientX - startX.current;
+    lastDx.current = nextDx;
+    setDragDx(nextDx);
   };
   const onUp = () => {
     if (!dragging.current) return;
-    const dx = dragDx;
+    const dx = lastDx.current;
     dragging.current = false;
+    lastDx.current = 0;
     setDragDx(0);
     if (Math.abs(dx) > 60) (dx < 0 ? next : prev)();
-    setTimeout(() => setPaused(false), 800);
+    resumeTimer.current = window.setTimeout(() => setPaused(false), 800);
   };
 
   return (
@@ -113,7 +126,10 @@ function HeroSlideshow() {
       onMouseUp={onUp}
       onMouseLeave={onUp}
       onTouchStart={(e) => onDown(e.touches[0].clientX)}
-      onTouchMove={(e) => onMove(e.touches[0].clientX)}
+      onTouchMove={(e) => {
+        onMove(e.touches[0].clientX);
+        if (Math.abs(lastDx.current) > 8) e.preventDefault();
+      }}
       onTouchEnd={onUp}
       style={{ cursor: dragging.current ? "grabbing" : "grab" }}
     >
