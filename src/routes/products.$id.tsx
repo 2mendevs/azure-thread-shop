@@ -18,6 +18,7 @@ function ProductPage() {
   const { add } = useCart();
   const navigate = useNavigate();
   const [size, setSize] = useState<string | null>(null);
+  const [activeImg, setActiveImg] = useState(0);
 
   if (isLoading) {
     return (
@@ -61,8 +62,28 @@ function ProductPage() {
         </Link>
       </div>
       <div className="container mx-auto grid gap-10 px-4 pb-16 md:grid-cols-2">
-        <div className="overflow-hidden rounded-xl border border-border bg-muted">
-          <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+        <div className="space-y-3">
+          <div className="overflow-hidden rounded-xl border border-border bg-muted">
+            <img
+              src={product.images[activeImg] ?? product.image}
+              alt={product.name}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="flex gap-2 overflow-x-auto">
+            {product.images.map((src, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveImg(i)}
+                className={`shrink-0 overflow-hidden rounded-md border-2 transition-all ${
+                  activeImg === i ? "border-gold shadow-gold" : "border-border hover:border-gold/50"
+                }`}
+                aria-label={`Image ${i + 1}`}
+              >
+                <img src={src} alt="" className="h-20 w-16 object-cover" />
+              </button>
+            ))}
+          </div>
         </div>
         <div>
           <p className="text-xs uppercase tracking-widest text-gold">{product.brand}</p>
