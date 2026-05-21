@@ -200,9 +200,11 @@ function HeroSlideshow() {
 
 function Home() {
   const { data: products = [] } = useProducts();
-  const men = products.filter((p) => p.category === "Men");
-  const women = products.filter((p) => p.category === "Women");
-  const kids = products.filter((p) => p.category === "Kids");
+  const { men, women, kids } = useMemo(() => ({
+    men: products.filter((p) => p.category === "Men"),
+    women: products.filter((p) => p.category === "Women"),
+    kids: products.filter((p) => p.category === "Kids"),
+  }), [products]);
 
   return (
     <div className="min-h-screen bg-background">
