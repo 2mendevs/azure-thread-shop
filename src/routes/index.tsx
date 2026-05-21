@@ -146,15 +146,15 @@ function HeroSlideshow() {
       </div>
       {/* arrows */}
       <button
-        onClick={() => setI((p) => (p - 1 + SLIDES.length) % SLIDES.length)}
-        className="absolute left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20 md:grid"
+        onClick={prev}
+        className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20"
         aria-label="Previous"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
       <button
-        onClick={() => setI((p) => (p + 1) % SLIDES.length)}
-        className="absolute right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20 md:grid"
+        onClick={next}
+        className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20"
         aria-label="Next"
       >
         <ChevronRight className="h-5 w-5" />
