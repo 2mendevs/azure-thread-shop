@@ -99,10 +99,10 @@ function ProductPage() {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" onClick={() => handleAdd(false)} className="flex-1 bg-primary text-primary-foreground">
-              <ShoppingBag className="mr-2 h-4 w-4" /> Add to bag
+            <Button onClick={() => handleAdd(false)} className="h-14 flex-1 bg-primary text-base text-primary-foreground">
+              <ShoppingBag className="mr-2 h-5 w-5" /> Add to bag
             </Button>
-            <Button size="lg" onClick={() => handleAdd(true)} className="flex-1 bg-gold-gradient text-gold-foreground shadow-gold">
+            <Button onClick={() => handleAdd(true)} className="h-14 flex-1 bg-gold-gradient text-base text-gold-foreground shadow-gold">
               Buy now
             </Button>
           </div>
