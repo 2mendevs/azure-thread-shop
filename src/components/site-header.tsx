@@ -1,7 +1,8 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ShoppingBag, User as UserIcon, LogOut, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { isAdmin as checkAdmin } from "@/lib/admin-auth";
+import { isAdmin as checkAdmin, logoutAdmin, ADMIN_EMAIL } from "@/lib/admin-auth";
+import { toast } from "sonner";
 
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
