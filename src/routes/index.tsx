@@ -79,6 +79,7 @@ function HeroSlideshow() {
   const lastDx = useRef(0);
   const dragging = useRef(false);
   const resumeTimer = useRef<number | null>(null);
+  const dragFrame = useRef<number | null>(null);
 
   useEffect(() => {
     if (paused) return;
@@ -89,6 +90,7 @@ function HeroSlideshow() {
   useEffect(() => {
     return () => {
       if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+      if (dragFrame.current) window.cancelAnimationFrame(dragFrame.current);
     };
   }, []);
 
@@ -106,7 +108,11 @@ function HeroSlideshow() {
     if (!dragging.current) return;
     const nextDx = clientX - startX.current;
     lastDx.current = nextDx;
-    setDragDx(nextDx);
+    if (dragFrame.current) return;
+    dragFrame.current = window.requestAnimationFrame(() => {
+      setDragDx(lastDx.current);
+      dragFrame.current = null;
+    });
   };
   const onUp = () => {
     if (!dragging.current) return;
@@ -179,12 +185,16 @@ function HeroSlideshow() {
                   <img
                     src={s.images[0]}
                     alt={s.kicker}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    decoding="async"
                     draggable={false}
                     className="absolute right-0 top-4 h-[440px] w-[80%] rounded-2xl object-cover shadow-elegant"
                   />
                   <img
                     src={s.images[1]}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     draggable={false}
                     className="absolute bottom-6 left-0 h-44 w-44 rounded-2xl border-4 border-background object-cover shadow-gold"
                   />
