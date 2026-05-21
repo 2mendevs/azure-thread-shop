@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useProduct } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { ChevronLeft, ShoppingBag, ShieldCheck, Truck } from "lucide-react";
@@ -19,6 +19,14 @@ function ProductPage() {
   const navigate = useNavigate();
   const [size, setSize] = useState<string | null>(null);
   const [activeImg, setActiveImg] = useState(0);
+  const [dragDx, setDragDx] = useState(0);
+  const startX = useRef(0);
+  const lastDx = useRef(0);
+  const dragging = useRef(false);
+
+  useEffect(() => {
+    setActiveImg(0);
+  }, [id]);
 
   if (isLoading) {
     return (
@@ -42,6 +50,31 @@ function ProductPage() {
   }
 
   const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
+  const galleryImages = product.images?.length ? product.images : [product.image];
+
+  const changeImage = (direction: 1 | -1) => {
+    setActiveImg((p) => (p + direction + galleryImages.length) % galleryImages.length);
+  };
+
+  const onGalleryDown = (clientX: number) => {
+    dragging.current = true;
+    startX.current = clientX;
+    lastDx.current = 0;
+  };
+  const onGalleryMove = (clientX: number) => {
+    if (!dragging.current) return;
+    const nextDx = clientX - startX.current;
+    lastDx.current = nextDx;
+    setDragDx(nextDx);
+  };
+  const onGalleryUp = () => {
+    if (!dragging.current) return;
+    const dx = lastDx.current;
+    dragging.current = false;
+    lastDx.current = 0;
+    setDragDx(0);
+    if (galleryImages.length > 1 && Math.abs(dx) > 45) changeImage(dx < 0 ? 1 : -1);
+  };
 
   const handleAdd = (goToCart = false) => {
     if (!size) {
