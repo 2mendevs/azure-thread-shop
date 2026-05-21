@@ -2,13 +2,26 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "./products";
 
+type ProductRow = {
+  id: string;
+  name: string;
+  brand: string;
+  price: number | string;
+  mrp: number | string;
+  category: string;
+  description: string;
+  image: string;
+  images?: string[] | null;
+  sizes?: string[] | null;
+};
+
 async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
     .select("*")
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((r: any) => {
+  return ((data ?? []) as ProductRow[]).map((r) => {
     const imgs: string[] = Array.isArray(r.images) && r.images.length ? r.images : [r.image];
     return {
       id: r.id,
