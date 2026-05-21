@@ -19,9 +19,16 @@ export function SiteHeader() {
   const [admin, setAdmin] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
-    setAdmin(checkAdmin());
-    const i = setInterval(() => setAdmin(checkAdmin()), 1000);
-    return () => clearInterval(i);
+    const syncAdmin = () => setAdmin(checkAdmin());
+    syncAdmin();
+    window.addEventListener("admin-auth-change", syncAdmin);
+    window.addEventListener("storage", syncAdmin);
+    window.addEventListener("focus", syncAdmin);
+    return () => {
+      window.removeEventListener("admin-auth-change", syncAdmin);
+      window.removeEventListener("storage", syncAdmin);
+      window.removeEventListener("focus", syncAdmin);
+    };
   }, []);
 
   const handleAdminLogout = () => {
