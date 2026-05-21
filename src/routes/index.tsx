@@ -128,7 +128,9 @@ function HeroSlideshow() {
     if (Math.abs(dx) > 60) {
       suppressClick.current = true;
       (dx < 0 ? next : prev)();
-      window.setTimeout(() => { suppressClick.current = false; }, 0);
+      window.setTimeout(() => {
+        suppressClick.current = false;
+      }, 0);
     }
     resumeTimer.current = window.setTimeout(() => setPaused(false), 800);
   };
@@ -149,30 +151,49 @@ function HeroSlideshow() {
     >
       <div
         className="container mx-auto grid h-[560px] gap-10 px-4 md:grid-cols-2 md:h-[600px]"
-        style={{ transform: `translateX(${dragDx * 0.25}px)`, transition: dragging.current ? "none" : "transform 300ms ease" }}
+        style={{
+          transform: `translateX(${dragDx * 0.25}px)`,
+          transition: dragging.current ? "none" : "transform 300ms ease",
+        }}
       >
         {(() => {
           const s = SLIDES[i];
           return (
             <>
-              <div key={`txt-${i}`} className="flex flex-col justify-center text-primary-foreground animate-in fade-in slide-in-from-left-6 duration-700">
+              <div
+                key={`txt-${i}`}
+                className="flex flex-col justify-center text-primary-foreground animate-in fade-in slide-in-from-left-6 duration-700"
+              >
                 <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
-                  {s.cta.to === "/customize" ? <Wand2 className="h-3.5 w-3.5 text-gold" /> : <Sparkles className="h-3.5 w-3.5 text-gold" />}
+                  {s.cta.to === "/customize" ? (
+                    <Wand2 className="h-3.5 w-3.5 text-gold" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5 text-gold" />
+                  )}
                   {s.accent}
                 </span>
                 <p className="text-xs uppercase tracking-[0.3em] text-gold">{s.kicker}</p>
                 <h1 className="mt-2 font-display text-5xl font-bold leading-tight md:text-6xl">
                   {s.title} <span className="text-gold">{s.highlight}</span>
                 </h1>
-                <p className="mt-5 line-clamp-3 max-w-md text-base text-primary-foreground/85 md:text-lg">{s.copy}</p>
+                <p className="mt-5 line-clamp-3 max-w-md text-base text-primary-foreground/85 md:text-lg">
+                  {s.copy}
+                </p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <Link to={s.cta.to} hash={s.cta.hash}>
-                    <Button size="lg" className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90">
+                    <Button
+                      size="lg"
+                      className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90"
+                    >
                       {s.cta.label} <ArrowRight className="ml-1.5 h-4 w-4" />
                     </Button>
                   </Link>
                   <Link to="/customize">
-                    <Button size="lg" variant="outline" className="border-white/40 bg-white/10 text-primary-foreground hover:bg-white/20">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-white/40 bg-white/10 text-primary-foreground hover:bg-white/20"
+                    >
                       <Wand2 className="mr-1.5 h-4 w-4" /> Customize
                     </Button>
                   </Link>
@@ -189,7 +210,10 @@ function HeroSlideshow() {
                 </div>
               </div>
               <div className="hidden md:block">
-                <div key={`img-${i}`} className="relative h-full animate-in fade-in zoom-in-95 duration-700">
+                <div
+                  key={`img-${i}`}
+                  className="relative h-full animate-in fade-in zoom-in-95 duration-700"
+                >
                   <img
                     src={s.images[0]}
                     alt={s.kicker}
@@ -218,11 +242,14 @@ function HeroSlideshow() {
 
 function Home() {
   const { data: products = [] } = useProducts();
-  const { men, women, kids } = useMemo(() => ({
-    men: products.filter((p) => p.category === "Men"),
-    women: products.filter((p) => p.category === "Women"),
-    kids: products.filter((p) => p.category === "Kids"),
-  }), [products]);
+  const { men, women, kids } = useMemo(
+    () => ({
+      men: products.filter((p) => p.category === "Men"),
+      women: products.filter((p) => p.category === "Women"),
+      kids: products.filter((p) => p.category === "Kids"),
+    }),
+    [products],
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -233,9 +260,15 @@ function Home() {
       {/* Trust strip */}
       <section className="border-b border-border bg-card">
         <div className="container mx-auto grid grid-cols-1 gap-6 px-4 py-6 text-sm md:grid-cols-3">
-          <div className="flex items-center gap-3 text-foreground/80"><Truck className="h-5 w-5 text-gold" /> Free shipping over ₹1,499</div>
-          <div className="flex items-center gap-3 text-foreground/80"><ShieldCheck className="h-5 w-5 text-gold" /> 30-day easy returns</div>
-          <div className="flex items-center gap-3 text-foreground/80"><Sparkles className="h-5 w-5 text-gold" /> Premium fabrics, ethically sourced</div>
+          <div className="flex items-center gap-3 text-foreground/80">
+            <Truck className="h-5 w-5 text-gold" /> Free shipping over ₹1,499
+          </div>
+          <div className="flex items-center gap-3 text-foreground/80">
+            <ShieldCheck className="h-5 w-5 text-gold" /> 30-day easy returns
+          </div>
+          <div className="flex items-center gap-3 text-foreground/80">
+            <Sparkles className="h-5 w-5 text-gold" /> Premium fabrics, ethically sourced
+          </div>
         </div>
       </section>
 
@@ -244,11 +277,15 @@ function Home() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest text-gold">For him</p>
-              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Men's edit</h2>
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                Men's edit
+              </h2>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {men.map((p) => <ProductCard key={p.id} product={p} />)}
+            {men.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </div>
 
@@ -256,11 +293,15 @@ function Home() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest text-gold">For her</p>
-              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Women's edit</h2>
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                Women's edit
+              </h2>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {women.map((p) => <ProductCard key={p.id} product={p} />)}
+            {women.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </div>
 
@@ -268,18 +309,24 @@ function Home() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest text-gold">For little ones</p>
-              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Kids' edit</h2>
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                Kids' edit
+              </h2>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {kids.map((p) => <ProductCard key={p.id} product={p} />)}
+            {kids.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </div>
       </section>
 
       <footer className="border-t border-border bg-card">
         <div className="container mx-auto flex flex-col items-center justify-between gap-3 px-4 py-8 text-sm text-muted-foreground md:flex-row">
-          <p>© 2026 <span className="text-gold font-semibold">2mendevs</span>. Crafted with care.</p>
+          <p>
+            © 2026 <span className="text-gold font-semibold">2mendevs</span>. Crafted with care.
+          </p>
           <p>support@2mendevs.com</p>
         </div>
       </footer>

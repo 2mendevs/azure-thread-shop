@@ -9,7 +9,12 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "./auth-dialog";
 import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 export function SiteHeader() {
@@ -38,7 +43,6 @@ export function SiteHeader() {
     navigate({ to: "/" });
   };
 
-
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -52,11 +56,39 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden gap-8 md:flex">
-          <Link to="/" className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors">Home</Link>
-          <Link to="/" hash="men" className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors">Men</Link>
-          <Link to="/" hash="women" className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors">Women</Link>
-          <Link to="/" hash="kids" className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors">Kids</Link>
-          <Link to="/customize" className="text-sm font-semibold text-gold hover:opacity-80 transition-colors">Customize</Link>
+          <Link
+            to="/"
+            className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors"
+          >
+            Home
+          </Link>
+          <Link
+            to="/"
+            hash="men"
+            className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors"
+          >
+            Men
+          </Link>
+          <Link
+            to="/"
+            hash="women"
+            className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors"
+          >
+            Women
+          </Link>
+          <Link
+            to="/"
+            hash="kids"
+            className="text-sm font-medium text-foreground/80 hover:text-gold transition-colors"
+          >
+            Kids
+          </Link>
+          <Link
+            to="/customize"
+            className="text-sm font-semibold text-gold hover:opacity-80 transition-colors"
+          >
+            Customize
+          </Link>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -70,10 +102,14 @@ export function SiteHeader() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon"><UserIcon className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon">
+                  <UserIcon className="h-5 w-5" />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="truncate text-xs text-muted-foreground">{user.email}</DropdownMenuLabel>
+                <DropdownMenuLabel className="truncate text-xs text-muted-foreground">
+                  {user.email}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
@@ -83,10 +119,14 @@ export function SiteHeader() {
           ) : admin ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon"><UserIcon className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon">
+                  <UserIcon className="h-5 w-5" />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="truncate text-xs text-muted-foreground">{ADMIN_EMAIL}</DropdownMenuLabel>
+                <DropdownMenuLabel className="truncate text-xs text-muted-foreground">
+                  {ADMIN_EMAIL}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleAdminLogout}>
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
@@ -94,7 +134,9 @@ export function SiteHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="ghost" onClick={() => setAuthOpen(true)} className="text-sm">Login</Button>
+            <Button variant="ghost" onClick={() => setAuthOpen(true)} className="text-sm">
+              Login
+            </Button>
           )}
           <Link to="/cart">
             <Button variant="ghost" size="icon" className="relative">

@@ -40,7 +40,9 @@ function ProductPage() {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
-        <div className="container mx-auto px-4 py-20 text-center text-muted-foreground">Loading…</div>
+        <div className="container mx-auto px-4 py-20 text-center text-muted-foreground">
+          Loading…
+        </div>
       </div>
     );
   }
@@ -51,7 +53,9 @@ function ProductPage() {
         <SiteHeader />
         <div className="container mx-auto px-4 py-20 text-center">
           <h1 className="font-display text-2xl">Product not found</h1>
-          <Link to="/" className="mt-4 inline-block text-gold underline">Back to home</Link>
+          <Link to="/" className="mt-4 inline-block text-gold underline">
+            Back to home
+          </Link>
         </div>
       </div>
     );
@@ -92,7 +96,9 @@ function ProductPage() {
     if (galleryImages.length > 1 && Math.abs(dx) > 45) {
       suppressClick.current = true;
       changeImage(dx < 0 ? 1 : -1);
-      window.setTimeout(() => { suppressClick.current = false; }, 0);
+      window.setTimeout(() => {
+        suppressClick.current = false;
+      }, 0);
     }
   };
 
@@ -110,7 +116,10 @@ function ProductPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <div className="container mx-auto px-4 py-6">
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ChevronLeft className="h-4 w-4" /> Back
         </Link>
       </div>
@@ -134,7 +143,10 @@ function ProductPage() {
               decoding="async"
               draggable={false}
               className="h-full w-full object-cover transition-transform duration-300"
-              style={{ transform: `translateX(${dragDx * 0.2}px)`, transition: dragging.current ? "none" : undefined }}
+              style={{
+                transform: `translateX(${dragDx * 0.2}px)`,
+                transition: dragging.current ? "none" : undefined,
+              }}
             />
           </div>
           <div className="flex gap-2 overflow-x-auto">
@@ -154,19 +166,27 @@ function ProductPage() {
         </div>
         <div>
           <p className="text-xs uppercase tracking-widest text-gold">{product.brand}</p>
-          <h1 className="mt-1 font-display text-3xl font-bold text-foreground md:text-4xl">{product.name}</h1>
+          <h1 className="mt-1 font-display text-3xl font-bold text-foreground md:text-4xl">
+            {product.name}
+          </h1>
           <p className="mt-3 text-muted-foreground">{product.description}</p>
 
           <div className="mt-6 flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-foreground">₹{product.price.toLocaleString()}</span>
-            <span className="text-base text-muted-foreground line-through">₹{product.mrp.toLocaleString()}</span>
+            <span className="text-3xl font-bold text-foreground">
+              ₹{product.price.toLocaleString()}
+            </span>
+            <span className="text-base text-muted-foreground line-through">
+              ₹{product.mrp.toLocaleString()}
+            </span>
             <span className="text-sm font-semibold text-gold">({discount}% off)</span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">Inclusive of all taxes</p>
 
           <div className="mt-8">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-semibold uppercase tracking-wider text-foreground">Select size</p>
+              <p className="text-sm font-semibold uppercase tracking-wider text-foreground">
+                Select size
+              </p>
               <span className="text-xs text-muted-foreground">Size guide</span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -187,17 +207,28 @@ function ProductPage() {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button onClick={() => handleAdd(false)} className="h-14 flex-1 bg-primary text-base text-primary-foreground">
+            <Button
+              onClick={() => handleAdd(false)}
+              className="h-14 flex-1 bg-primary text-base text-primary-foreground"
+            >
               <ShoppingBag className="mr-2 h-5 w-5" /> Add to bag
             </Button>
-            <Button onClick={() => handleAdd(true)} className="h-14 flex-1 bg-gold-gradient text-base text-gold-foreground shadow-gold">
+            <Button
+              onClick={() => handleAdd(true)}
+              className="h-14 flex-1 bg-gold-gradient text-base text-gold-foreground shadow-gold"
+            >
               Buy now
             </Button>
           </div>
 
           <div className="mt-8 space-y-3 rounded-lg border border-border bg-card p-4 text-sm">
-            <div className="flex items-center gap-3"><Truck className="h-4 w-4 text-gold" /> Free shipping over ₹1,499 • Delivery in 3-5 days</div>
-            <div className="flex items-center gap-3"><ShieldCheck className="h-4 w-4 text-gold" /> 30-day returns, no questions asked</div>
+            <div className="flex items-center gap-3">
+              <Truck className="h-4 w-4 text-gold" /> Free shipping over ₹1,499 • Delivery in 3-5
+              days
+            </div>
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="h-4 w-4 text-gold" /> 30-day returns, no questions asked
+            </div>
           </div>
         </div>
       </div>
