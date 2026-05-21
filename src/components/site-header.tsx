@@ -17,11 +17,19 @@ export function SiteHeader() {
   const { user, signOut } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     setAdmin(checkAdmin());
     const i = setInterval(() => setAdmin(checkAdmin()), 1000);
     return () => clearInterval(i);
   }, []);
+
+  const handleAdminLogout = () => {
+    logoutAdmin();
+    setAdmin(false);
+    toast.success("Admin signed out");
+    navigate({ to: "/" });
+  };
 
 
   return (
