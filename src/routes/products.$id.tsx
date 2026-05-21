@@ -96,15 +96,29 @@ function ProductPage() {
       </div>
       <div className="container mx-auto grid gap-10 px-4 pb-16 md:grid-cols-2">
         <div className="space-y-3">
-          <div className="overflow-hidden rounded-xl border border-border bg-muted">
+          <div
+            className="aspect-[3/4] cursor-grab overflow-hidden rounded-xl border border-border bg-muted select-none touch-pan-y active:cursor-grabbing"
+            onMouseDown={(e) => onGalleryDown(e.clientX)}
+            onMouseMove={(e) => onGalleryMove(e.clientX)}
+            onMouseUp={onGalleryUp}
+            onMouseLeave={onGalleryUp}
+            onTouchStart={(e) => onGalleryDown(e.touches[0].clientX)}
+            onTouchMove={(e) => {
+              onGalleryMove(e.touches[0].clientX);
+              if (Math.abs(lastDx.current) > 8) e.preventDefault();
+            }}
+            onTouchEnd={onGalleryUp}
+          >
             <img
-              src={product.images[activeImg] ?? product.image}
+              src={galleryImages[activeImg] ?? product.image}
               alt={product.name}
-              className="h-full w-full object-cover"
+              draggable={false}
+              className="h-full w-full object-cover transition-transform duration-300"
+              style={{ transform: `translateX(${dragDx * 0.2}px)`, transition: dragging.current ? "none" : undefined }}
             />
           </div>
           <div className="flex gap-2 overflow-x-auto">
-            {product.images.map((src, i) => (
+            {galleryImages.map((src, i) => (
               <button
                 key={i}
                 onClick={() => setActiveImg(i)}
@@ -113,7 +127,7 @@ function ProductPage() {
                 }`}
                 aria-label={`Image ${i + 1}`}
               >
-                <img src={src} alt="" className="h-20 w-16 object-cover" />
+                <img src={src} alt="" loading="lazy" className="h-20 w-16 object-cover" />
               </button>
             ))}
           </div>
