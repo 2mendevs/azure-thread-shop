@@ -4,7 +4,7 @@ import { useProducts } from "@/lib/use-products";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Truck, ShieldCheck, Wand2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Sparkles, Truck, ShieldCheck, Wand2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -73,92 +73,111 @@ const SLIDES: Slide[] = [
 
 function HeroSlideshow() {
   const [i, setI] = useState(0);
-  const touchStart = useState<{ x: number } | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [dragDx, setDragDx] = useState(0);
+  const startX = (typeof window !== "undefined" ? { current: 0 } : { current: 0 });
+  const dragging = { current: false } as { current: boolean };
+
   useEffect(() => {
+    if (paused) return;
     const t = setInterval(() => setI((p) => (p + 1) % SLIDES.length), 5000);
     return () => clearInterval(t);
-  }, []);
+  }, [paused]);
+
   const next = () => setI((p) => (p + 1) % SLIDES.length);
   const prev = () => setI((p) => (p - 1 + SLIDES.length) % SLIDES.length);
-  let startX = 0;
-  const onTouchStart = (e: React.TouchEvent) => { startX = e.touches[0].clientX; };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 40) (dx < 0 ? next : prev)();
+
+  const onDown = (clientX: number) => {
+    dragging.current = true;
+    startX.current = clientX;
+    setPaused(true);
   };
-  void touchStart;
-  const s = SLIDES[i];
+  const onMove = (clientX: number) => {
+    if (!dragging.current) return;
+    setDragDx(clientX - startX.current);
+  };
+  const onUp = () => {
+    if (!dragging.current) return;
+    const dx = dragDx;
+    dragging.current = false;
+    setDragDx(0);
+    if (Math.abs(dx) > 60) (dx < 0 ? next : prev)();
+    setTimeout(() => setPaused(false), 800);
+  };
+
   return (
     <section
-      className="relative overflow-hidden bg-hero touch-pan-y"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
+      className="relative overflow-hidden bg-hero select-none touch-pan-y"
+      onMouseDown={(e) => onDown(e.clientX)}
+      onMouseMove={(e) => onMove(e.clientX)}
+      onMouseUp={onUp}
+      onMouseLeave={onUp}
+      onTouchStart={(e) => onDown(e.touches[0].clientX)}
+      onTouchMove={(e) => onMove(e.touches[0].clientX)}
+      onTouchEnd={onUp}
+      style={{ cursor: dragging.current ? "grabbing" : "grab" }}
     >
-      <div className="container mx-auto grid gap-10 px-4 py-20 md:grid-cols-2 md:py-28">
-        <div key={`txt-${i}`} className="flex flex-col justify-center text-primary-foreground animate-in fade-in slide-in-from-left-6 duration-700">
-          <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
-            {s.cta.to === "/customize" ? <Wand2 className="h-3.5 w-3.5 text-gold" /> : <Sparkles className="h-3.5 w-3.5 text-gold" />}
-            {s.accent}
-          </span>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold">{s.kicker}</p>
-          <h1 className="mt-2 font-display text-5xl font-bold leading-tight md:text-6xl">
-            {s.title} <span className="text-gold">{s.highlight}</span>
-          </h1>
-          <p className="mt-5 max-w-md text-base text-primary-foreground/85 md:text-lg">{s.copy}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link to={s.cta.to} hash={s.cta.hash}>
-              <Button size="lg" className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90">
-                {s.cta.label} <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link to="/customize">
-              <Button size="lg" variant="outline" className="border-white/40 bg-white/10 text-primary-foreground hover:bg-white/20">
-                <Wand2 className="mr-1.5 h-4 w-4" /> Customize
-              </Button>
-            </Link>
-          </div>
-          {/* dots */}
-          <div className="mt-8 flex items-center gap-2">
-            {SLIDES.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setI(idx)}
-                className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-gold" : "w-3 bg-white/40"}`}
-                aria-label={`Slide ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-        <div className="hidden md:block">
-          <div key={`img-${i}`} className="relative h-full min-h-[420px] animate-in fade-in zoom-in-95 duration-700">
-            <img
-              src={s.images[0]}
-              alt={s.kicker}
-              className="absolute right-0 top-0 h-[420px] w-[80%] rounded-2xl object-cover shadow-elegant"
-            />
-            <img
-              src={s.images[1]}
-              alt=""
-              className="absolute -bottom-6 left-0 h-44 w-44 rounded-2xl border-4 border-background object-cover shadow-gold"
-            />
-          </div>
-        </div>
+      <div
+        className="container mx-auto grid h-[560px] gap-10 px-4 md:grid-cols-2 md:h-[600px]"
+        style={{ transform: `translateX(${dragDx * 0.25}px)`, transition: dragging.current ? "none" : "transform 300ms ease" }}
+      >
+        {(() => {
+          const s = SLIDES[i];
+          return (
+            <>
+              <div key={`txt-${i}`} className="flex flex-col justify-center text-primary-foreground animate-in fade-in slide-in-from-left-6 duration-700">
+                <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
+                  {s.cta.to === "/customize" ? <Wand2 className="h-3.5 w-3.5 text-gold" /> : <Sparkles className="h-3.5 w-3.5 text-gold" />}
+                  {s.accent}
+                </span>
+                <p className="text-xs uppercase tracking-[0.3em] text-gold">{s.kicker}</p>
+                <h1 className="mt-2 font-display text-5xl font-bold leading-tight md:text-6xl">
+                  {s.title} <span className="text-gold">{s.highlight}</span>
+                </h1>
+                <p className="mt-5 line-clamp-3 max-w-md text-base text-primary-foreground/85 md:text-lg">{s.copy}</p>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Link to={s.cta.to} hash={s.cta.hash}>
+                    <Button size="lg" className="bg-gold-gradient text-gold-foreground shadow-gold hover:opacity-90">
+                      {s.cta.label} <ArrowRight className="ml-1.5 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link to="/customize">
+                    <Button size="lg" variant="outline" className="border-white/40 bg-white/10 text-primary-foreground hover:bg-white/20">
+                      <Wand2 className="mr-1.5 h-4 w-4" /> Customize
+                    </Button>
+                  </Link>
+                </div>
+                <div className="mt-8 flex items-center gap-2">
+                  {SLIDES.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setI(idx)}
+                      className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-gold" : "w-3 bg-white/40"}`}
+                      aria-label={`Slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="hidden md:block">
+                <div key={`img-${i}`} className="relative h-full animate-in fade-in zoom-in-95 duration-700">
+                  <img
+                    src={s.images[0]}
+                    alt={s.kicker}
+                    draggable={false}
+                    className="absolute right-0 top-4 h-[440px] w-[80%] rounded-2xl object-cover shadow-elegant"
+                  />
+                  <img
+                    src={s.images[1]}
+                    alt=""
+                    draggable={false}
+                    className="absolute bottom-6 left-0 h-44 w-44 rounded-2xl border-4 border-background object-cover shadow-gold"
+                  />
+                </div>
+              </div>
+            </>
+          );
+        })()}
       </div>
-      {/* arrows */}
-      <button
-        onClick={prev}
-        className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20"
-        aria-label="Previous"
-      >
-        <ChevronLeft className="h-5 w-5" />
-      </button>
-      <button
-        onClick={next}
-        className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/10 text-primary-foreground backdrop-blur hover:bg-white/20"
-        aria-label="Next"
-      >
-        <ChevronRight className="h-5 w-5" />
-      </button>
     </section>
   );
 }
