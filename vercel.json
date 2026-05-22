@@ -1,21 +1,6 @@
 {
   "version": 2,
-  "public": true,
+  "framework": "tanstack-start",
   "cleanUrls": true,
-  "trailingSlash": false,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/client"
-      }
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "trailingSlash": false
 }
