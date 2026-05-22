@@ -1,11 +1,21 @@
 {
+  "version": 2,
+  "public": true,
   "cleanUrls": true,
   "trailingSlash": false,
-  "routes": [
+  "builds": [
     {
-      "src": "/(.*)",
-      "dest": "/",
-      "check": true
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/client"
+      }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
