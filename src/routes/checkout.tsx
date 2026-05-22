@@ -110,7 +110,7 @@ function CheckoutPage() {
                   <Field label="State" value={address.state} onChange={(v) => setAddress({ ...address, state: v })} />
                   <Field label="Pincode" value={address.pincode} onChange={(v) => setAddress({ ...address, pincode: v })} />
                 </div>
-                <Button type="submit" size="lg" className="w-full bg-primary text-primary-foreground md:w-auto">
+                <Button type="submit" className="h-14 w-full bg-primary text-base text-primary-foreground md:w-auto md:px-8">
                   Continue to payment
                 </Button>
               </form>
