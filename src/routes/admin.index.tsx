@@ -140,9 +140,8 @@ function OrdersPanel() {
       {orders.length === 0 && (
         <p className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-muted-foreground">No orders yet.</p>
       )}
+      <div className="space-y-4">
 
-  return (
-    <div className="space-y-4">
       {orders.map((o: any) => {
         const items = Array.isArray(o.items) ? o.items : [];
         const progressIdx = STATUS_FLOW.indexOf(o.status as any);
