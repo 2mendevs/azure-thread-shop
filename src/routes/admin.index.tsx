@@ -110,9 +110,13 @@ function OrdersPanel() {
   const listFn = useFn(adminListOrders);
   const updateFn = useFn(adminUpdateOrderStatus);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["admin-orders"],
     queryFn: () => listFn({ data: creds() }),
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 15000,
   });
 
   const update = useMutation({
