@@ -3,13 +3,6 @@
   "trailingSlash": false,
   "routes": [
     {
-      "src": "/_nitro/(.*)",
-      "dest": "/_nitro/$1",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
       "src": "/(.*)",
       "dest": "/",
       "check": true
