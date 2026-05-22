@@ -68,18 +68,33 @@ function ProductPage() {
     setActiveImg((p) => (p + direction + galleryImages.length) % galleryImages.length);
   };
 
+  const startY = useRef(0);
+  const axisLocked = useRef<"x" | "y" | null>(null);
+
   const onGalleryPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
     dragging.current = true;
+    axisLocked.current = null;
     startX.current = event.clientX;
+    startY.current = event.clientY;
     lastDx.current = 0;
   };
   const onGalleryPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return;
-    const nextDx = event.clientX - startX.current;
-    lastDx.current = nextDx;
-    if (Math.abs(nextDx) > 8) event.preventDefault();
+    const dx = event.clientX - startX.current;
+    const dy = event.clientY - startY.current;
+    if (!axisLocked.current) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      axisLocked.current = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+      if (axisLocked.current === "x") {
+        try { event.currentTarget.setPointerCapture(event.pointerId); } catch {}
+      } else {
+        dragging.current = false;
+        return;
+      }
+    }
+    lastDx.current = dx;
+    if (event.cancelable) event.preventDefault();
     if (dragFrame.current) return;
     dragFrame.current = window.requestAnimationFrame(() => {
       setDragDx(lastDx.current);
@@ -87,19 +102,18 @@ function ProductPage() {
     });
   };
   const onGalleryPointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (!dragging.current) return;
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    if (!dragging.current && axisLocked.current !== "x") return;
+    try { event.currentTarget.releasePointerCapture(event.pointerId); } catch {}
     const dx = lastDx.current;
     dragging.current = false;
     lastDx.current = 0;
     setDragDx(0);
-    if (galleryImages.length > 1 && Math.abs(dx) > 45) {
+    if (axisLocked.current === "x" && galleryImages.length > 1 && Math.abs(dx) > 45) {
       suppressClick.current = true;
       changeImage(dx < 0 ? 1 : -1);
-      window.setTimeout(() => {
-        suppressClick.current = false;
-      }, 0);
+      window.setTimeout(() => { suppressClick.current = false; }, 0);
     }
+    axisLocked.current = null;
   };
 
   const handleAdd = (goToCart = false) => {

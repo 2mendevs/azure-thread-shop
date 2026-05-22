@@ -110,9 +110,13 @@ function OrdersPanel() {
   const listFn = useFn(adminListOrders);
   const updateFn = useFn(adminUpdateOrderStatus);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["admin-orders"],
     queryFn: () => listFn({ data: creds() }),
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 15000,
   });
 
   const update = useMutation({
@@ -127,12 +131,17 @@ function OrdersPanel() {
 
   if (isLoading) return <p className="text-muted-foreground">Loading orders…</p>;
   const orders = data?.orders ?? [];
-  if (orders.length === 0) {
-    return <p className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-muted-foreground">No orders yet.</p>;
-  }
-
   return (
-    <div className="space-y-4">
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{orders.length} order{orders.length === 1 ? "" : "s"} {isFetching && "· refreshing…"}</p>
+        <Button variant="outline" size="sm" onClick={() => refetch()}>Refresh</Button>
+      </div>
+      {orders.length === 0 && (
+        <p className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-muted-foreground">No orders yet.</p>
+      )}
+      <div className="space-y-4">
+
       {orders.map((o: any) => {
         const items = Array.isArray(o.items) ? o.items : [];
         const progressIdx = STATUS_FLOW.indexOf(o.status as any);
@@ -198,9 +207,11 @@ function OrdersPanel() {
           </div>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 }
+
 
 /* ---------- Products ---------- */
 

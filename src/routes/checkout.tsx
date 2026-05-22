@@ -110,7 +110,7 @@ function CheckoutPage() {
                   <Field label="State" value={address.state} onChange={(v) => setAddress({ ...address, state: v })} />
                   <Field label="Pincode" value={address.pincode} onChange={(v) => setAddress({ ...address, pincode: v })} />
                 </div>
-                <Button type="submit" size="lg" className="w-full bg-primary text-primary-foreground md:w-auto">
+                <Button type="submit" className="h-14 w-full bg-primary text-base text-primary-foreground md:w-auto md:px-8">
                   Continue to payment
                 </Button>
               </form>
@@ -129,8 +129,8 @@ function CheckoutPage() {
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <Button variant="outline" onClick={() => setStep("address")} className="flex-1">Back</Button>
-                  <Button onClick={handlePay} disabled={submitting} size="lg" className="flex-1 bg-gold-gradient text-gold-foreground shadow-gold">
+                  <Button variant="outline" onClick={() => setStep("address")} className="h-14 flex-1 text-base">Back</Button>
+                  <Button onClick={handlePay} disabled={submitting} className="h-14 flex-1 bg-gold-gradient text-base text-gold-foreground shadow-gold">
                     {submitting ? "Processing…" : `Pay ₹${total.toLocaleString()}`}
                   </Button>
                 </div>

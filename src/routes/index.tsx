@@ -75,9 +75,12 @@ function HeroSlideshow() {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const [dragDx, setDragDx] = useState(0);
+  const [grabbing, setGrabbing] = useState(false);
   const startX = useRef(0);
+  const startY = useRef(0);
   const lastDx = useRef(0);
   const dragging = useRef(false);
+  const axisLocked = useRef<"x" | "y" | null>(null);
   const suppressClick = useRef(false);
   const resumeTimer = useRef<number | null>(null);
   const dragFrame = useRef<number | null>(null);
@@ -100,18 +103,33 @@ function HeroSlideshow() {
 
   const onPointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
     if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
     dragging.current = true;
+    axisLocked.current = null;
     startX.current = event.clientX;
+    startY.current = event.clientY;
     lastDx.current = 0;
-    setPaused(true);
+    setGrabbing(true);
   };
   const onPointerMove = (event: PointerEvent<HTMLElement>) => {
     if (!dragging.current) return;
-    const nextDx = event.clientX - startX.current;
-    lastDx.current = nextDx;
-    if (Math.abs(nextDx) > 8) event.preventDefault();
+    const dx = event.clientX - startX.current;
+    const dy = event.clientY - startY.current;
+    // Decide axis once movement exceeds threshold so vertical scroll stays intact.
+    if (!axisLocked.current) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      axisLocked.current = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+      if (axisLocked.current === "x") {
+        try { event.currentTarget.setPointerCapture(event.pointerId); } catch {}
+        setPaused(true);
+      } else {
+        dragging.current = false;
+        setGrabbing(false);
+        return;
+      }
+    }
+    lastDx.current = dx;
+    if (event.cancelable) event.preventDefault();
     if (dragFrame.current) return;
     dragFrame.current = window.requestAnimationFrame(() => {
       setDragDx(lastDx.current);
@@ -119,25 +137,28 @@ function HeroSlideshow() {
     });
   };
   const onPointerUp = (event: PointerEvent<HTMLElement>) => {
-    if (!dragging.current) return;
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    if (!dragging.current && axisLocked.current !== "x") {
+      setGrabbing(false);
+      return;
+    }
+    try { event.currentTarget.releasePointerCapture(event.pointerId); } catch {}
     const dx = lastDx.current;
     dragging.current = false;
     lastDx.current = 0;
     setDragDx(0);
-    if (Math.abs(dx) > 60) {
+    setGrabbing(false);
+    if (axisLocked.current === "x" && Math.abs(dx) > 60) {
       suppressClick.current = true;
       (dx < 0 ? next : prev)();
-      window.setTimeout(() => {
-        suppressClick.current = false;
-      }, 0);
+      window.setTimeout(() => { suppressClick.current = false; }, 0);
     }
+    axisLocked.current = null;
     resumeTimer.current = window.setTimeout(() => setPaused(false), 800);
   };
 
   return (
     <section
-      className="relative overflow-hidden bg-hero select-none touch-pan-y"
+      className={`relative overflow-hidden bg-hero select-none touch-pan-y ${grabbing ? "cursor-grabbing" : "cursor-grab"}`}
       onClickCapture={(e) => {
         if (!suppressClick.current) return;
         e.preventDefault();
@@ -147,13 +168,12 @@ function HeroSlideshow() {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
-      style={{ cursor: dragging.current ? "grabbing" : "grab" }}
     >
       <div
         className="container mx-auto grid h-[560px] gap-10 px-4 md:grid-cols-2 md:h-[600px]"
         style={{
           transform: `translateX(${dragDx * 0.25}px)`,
-          transition: dragging.current ? "none" : "transform 300ms ease",
+          transition: grabbing ? "none" : "transform 300ms ease",
         }}
       >
         {(() => {
