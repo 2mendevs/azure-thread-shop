@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "public": true,
   "cleanUrls": true,
   "trailingSlash": false,
   "builds": [
@@ -14,7 +15,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/200.html"
+      "destination": "/index.html"
     }
   ]
 }
