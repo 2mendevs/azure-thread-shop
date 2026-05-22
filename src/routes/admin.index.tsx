@@ -132,83 +132,85 @@ function OrdersPanel() {
   if (isLoading) return <p className="text-muted-foreground">Loading orders…</p>;
   const orders = data?.orders ?? [];
   return (
-    <>
+    <div>
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{orders.length} order{orders.length === 1 ? "" : "s"} {isFetching && "· refreshing…"}</p>
+        <p className="text-sm text-muted-foreground">
+          {orders.length} {orders.length === 1 ? "order" : "orders"}
+          {isFetching ? " · refreshing…" : ""}
+        </p>
         <Button variant="outline" size="sm" onClick={() => refetch()}>Refresh</Button>
       </div>
-      {orders.length === 0 && (
+      {orders.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-muted-foreground">No orders yet.</p>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((o: any) => {
+            const items = Array.isArray(o.items) ? o.items : [];
+            const progressIdx = STATUS_FLOW.indexOf(o.status as any);
+            return (
+              <div key={o.id} className="rounded-xl border border-border bg-card p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
+                    <p className="font-semibold text-foreground">{o.full_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {o.address_line}, {o.city}, {o.state} - {o.pincode} · ☎ {o.phone}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {new Date(o.created_at).toLocaleString()} · Payment: {o.payment_method.toUpperCase()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-display text-xl font-bold text-foreground">₹{Number(o.total).toLocaleString()}</p>
+                    <Badge className="mt-1 bg-gold-gradient text-gold-foreground">{STATUS_LABEL[o.status] ?? o.status}</Badge>
+                  </div>
+                </div>
+
+                {o.status !== "cancelled" && (
+                  <div className="mt-4 flex items-center gap-1">
+                    {STATUS_FLOW.map((s, i) => (
+                      <div key={s} className="flex flex-1 items-center gap-1">
+                        <div className={`h-2 flex-1 rounded-full ${i <= progressIdx ? "bg-gold-gradient" : "bg-muted"}`} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-1 grid grid-cols-5 gap-1 text-[10px] text-muted-foreground">
+                  {STATUS_FLOW.map((s) => <span key={s} className="text-center">{STATUS_LABEL[s]}</span>)}
+                </div>
+
+                <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto]">
+                  <div className="space-y-2">
+                    {items.map((it: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-3 text-sm">
+                        {it.image && <img src={it.image} alt="" className="h-10 w-10 rounded object-cover" />}
+                        <div className="flex-1">
+                          <p className="font-medium text-foreground">{it.name}</p>
+                          <p className="text-xs text-muted-foreground">Size {it.size} · Qty {it.quantity}</p>
+                        </div>
+                        <span className="text-sm">₹{(Number(it.price) * Number(it.quantity)).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-end">
+                    <Select
+                      value={o.status}
+                      onValueChange={(v) => update.mutate({ orderId: o.id, status: v as Status })}
+                    >
+                      <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {STATUS_FLOW.map((s) => <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>)}
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
-      <div className="space-y-4">
-
-      {orders.map((o: any) => {
-        const items = Array.isArray(o.items) ? o.items : [];
-        const progressIdx = STATUS_FLOW.indexOf(o.status as any);
-        return (
-          <div key={o.id} className="rounded-xl border border-border bg-card p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8).toUpperCase()}</p>
-                <p className="font-semibold text-foreground">{o.full_name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {o.address_line}, {o.city}, {o.state} - {o.pincode} · ☎ {o.phone}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {new Date(o.created_at).toLocaleString()} · Payment: {o.payment_method.toUpperCase()}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-display text-xl font-bold text-foreground">₹{Number(o.total).toLocaleString()}</p>
-                <Badge className="mt-1 bg-gold-gradient text-gold-foreground">{STATUS_LABEL[o.status] ?? o.status}</Badge>
-              </div>
-            </div>
-
-            {/* Progress */}
-            {o.status !== "cancelled" && (
-              <div className="mt-4 flex items-center gap-1">
-                {STATUS_FLOW.map((s, i) => (
-                  <div key={s} className="flex flex-1 items-center gap-1">
-                    <div className={`h-2 flex-1 rounded-full ${i <= progressIdx ? "bg-gold-gradient" : "bg-muted"}`} />
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="mt-1 grid grid-cols-5 gap-1 text-[10px] text-muted-foreground">
-              {STATUS_FLOW.map((s) => <span key={s} className="text-center">{STATUS_LABEL[s]}</span>)}
-            </div>
-
-            <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto]">
-              <div className="space-y-2">
-                {items.map((it: any, idx: number) => (
-                  <div key={idx} className="flex items-center gap-3 text-sm">
-                    {it.image && <img src={it.image} alt="" className="h-10 w-10 rounded object-cover" />}
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground">{it.name}</p>
-                      <p className="text-xs text-muted-foreground">Size {it.size} · Qty {it.quantity}</p>
-                    </div>
-                    <span className="text-sm">₹{(Number(it.price) * Number(it.quantity)).toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-end">
-                <Select
-                  value={o.status}
-                  onValueChange={(v) => update.mutate({ orderId: o.id, status: v as Status })}
-                >
-                  <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {STATUS_FLOW.map((s) => <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>)}
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-      </div>
-    </>
+    </div>
   );
 }
 
