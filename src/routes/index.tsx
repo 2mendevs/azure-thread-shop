@@ -158,7 +158,7 @@ function HeroSlideshow() {
 
   return (
     <section
-      className={`relative overflow-hidden bg-hero select-none ${grabbing ? "cursor-grabbing" : "cursor-grab"}`}
+      className={`relative overflow-hidden bg-hero select-none touch-pan-y ${grabbing ? "cursor-grabbing" : "cursor-grab"}`}
       onClickCapture={(e) => {
         if (!suppressClick.current) return;
         e.preventDefault();
