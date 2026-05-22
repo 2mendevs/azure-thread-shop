@@ -129,8 +129,8 @@ function CheckoutPage() {
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <Button variant="outline" onClick={() => setStep("address")} className="flex-1">Back</Button>
-                  <Button onClick={handlePay} disabled={submitting} size="lg" className="flex-1 bg-gold-gradient text-gold-foreground shadow-gold">
+                  <Button variant="outline" onClick={() => setStep("address")} className="h-14 flex-1 text-base">Back</Button>
+                  <Button onClick={handlePay} disabled={submitting} className="h-14 flex-1 bg-gold-gradient text-base text-gold-foreground shadow-gold">
                     {submitting ? "Processing…" : `Pay ₹${total.toLocaleString()}`}
                   </Button>
                 </div>
