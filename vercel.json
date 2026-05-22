@@ -1,12 +1,6 @@
 {
-  "version": 2,
-  "framework": "vite",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/nitro"
-    }
-  ],
+  "cleanUrls": true,
+  "trailingSlash": false,
   "routes": [
     {
       "src": "/_nitro/(.*)",
