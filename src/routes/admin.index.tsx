@@ -207,9 +207,11 @@ function OrdersPanel() {
           </div>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 }
+
 
 /* ---------- Products ---------- */
 
