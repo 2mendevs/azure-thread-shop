@@ -4,20 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { ADMIN_EMAIL, ADMIN_PASSWORD, loginAdmin } from "@/lib/admin-auth";
-
-function tryAdminShortcut(email: string, password: string, navigate: ReturnType<typeof useNavigate>) {
-  if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-    loginAdmin(email, password);
-    toast.success("Welcome, admin");
-    navigate({ to: "/admin" });
-    return true;
-  }
-  return false;
-}
 
 export function AuthDialog({
   open,
@@ -28,42 +18,39 @@ export function AuthDialog({
   onOpenChange: (v: boolean) => void;
   onSuccess?: () => void;
 }) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (tryAdminShortcut(email, password, navigate)) {
+  const tryAdmin = (): boolean => {
+    if (email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      loginAdmin(email, password);
+      toast.success("Welcome, admin");
       onOpenChange(false);
-      return;
+      navigate({ to: "/admin" });
+      return true;
     }
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) return toast.error(error.message);
+    return false;
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (tryAdmin()) return;
+    if (!email.trim()) return toast.error("Please enter your email");
+    signIn(email, name);
     toast.success("Welcome back");
     onSuccess?.();
     onOpenChange(false);
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    if (tryAdminShortcut(email, password, navigate)) {
-      onOpenChange(false);
-      return;
-    }
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: window.location.origin },
-    });
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Account created — check your email to verify.");
+    if (tryAdmin()) return;
+    if (!email.trim()) return toast.error("Please enter your email");
+    signIn(email, name);
+    toast.success(`Welcome, ${name || email}`);
     onSuccess?.();
     onOpenChange(false);
   };
@@ -75,7 +62,7 @@ export function AuthDialog({
           <DialogTitle className="font-display text-2xl">
             Welcome to <span className="text-gold">2mendevs</span>
           </DialogTitle>
-          <DialogDescription>Login or create an account to continue checkout.</DialogDescription>
+          <DialogDescription>Sign in with your name and email to continue.</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="login" className="mt-2">
           <TabsList className="grid w-full grid-cols-2">
@@ -85,30 +72,36 @@ export function AuthDialog({
           <TabsContent value="login">
             <form onSubmit={handleLogin} className="space-y-4 pt-4">
               <div className="space-y-2">
+                <Label htmlFor="li-name">Name</Label>
+                <Input id="li-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="li-email">Email</Label>
                 <Input id="li-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="li-pw">Password</Label>
-                <Input id="li-pw" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input id="li-pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="(optional)" />
               </div>
-              <Button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground">
-                {loading ? "Signing in…" : "Login"}
-              </Button>
+              <Button type="submit" className="w-full bg-primary text-primary-foreground">Login</Button>
             </form>
           </TabsContent>
           <TabsContent value="signup">
             <form onSubmit={handleSignup} className="space-y-4 pt-4">
               <div className="space-y-2">
+                <Label htmlFor="su-name">Name</Label>
+                <Input id="su-name" required value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="su-email">Email</Label>
                 <Input id="su-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="su-pw">Password (min 6 chars)</Label>
-                <Input id="su-pw" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Label htmlFor="su-pw">Password</Label>
+                <Input id="su-pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="(optional)" />
               </div>
-              <Button type="submit" disabled={loading} className="w-full bg-gold-gradient text-gold-foreground shadow-gold">
-                {loading ? "Creating…" : "Create account"}
+              <Button type="submit" className="w-full bg-gold-gradient text-gold-foreground shadow-gold">
+                Create account
               </Button>
             </form>
           </TabsContent>

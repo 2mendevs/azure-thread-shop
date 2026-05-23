@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { createOrder } from "@/lib/orders";
 import { toast } from "sonner";
 import { CreditCard, Wallet, Banknote, Truck, Lock } from "lucide-react";
 
@@ -42,6 +42,12 @@ function CheckoutPage() {
     if (!loading && items.length === 0) navigate({ to: "/cart" });
   }, [user, loading, items.length, navigate]);
 
+  useEffect(() => {
+    if (user?.name && !address.full_name) {
+      setAddress((a) => ({ ...a, full_name: user.name! }));
+    }
+  }, [user, address.full_name]);
+
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     for (const [, v] of Object.entries(address)) {
@@ -55,33 +61,23 @@ function CheckoutPage() {
   const handlePay = async () => {
     if (!user) return;
     setSubmitting(true);
-    // Simulated payment processing
-    await new Promise((r) => setTimeout(r, 1200));
-
-    const { data, error } = await supabase
-      .from("orders")
-      .insert({
-        user_id: user.id,
-        items: JSON.parse(JSON.stringify(items)),
-        total,
-        full_name: address.full_name,
-        phone: address.phone,
-        address_line: address.address_line,
-        city: address.city,
-        state: address.state,
-        pincode: address.pincode,
-        payment_method: paymentMethod,
-      })
-      .select("id")
-      .single();
-
+    await new Promise((r) => setTimeout(r, 800));
+    const order = createOrder({
+      user_id: user.id,
+      user_email: user.email,
+      full_name: address.full_name,
+      phone: address.phone,
+      address_line: address.address_line,
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      payment_method: paymentMethod,
+      items: items.map((i) => ({ ...i })),
+      total,
+    });
     setSubmitting(false);
-    if (error || !data) {
-      toast.error("Couldn't place order. Try again.");
-      return;
-    }
     clear();
-    navigate({ to: "/order-success", search: { id: data.id } });
+    navigate({ to: "/order-success", search: { id: order.id } });
   };
 
   return (
